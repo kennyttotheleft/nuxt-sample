@@ -1,37 +1,49 @@
-import axios from 'axios'
+/**
+ * store/index.js
+ */
+import firebase from '@/plugins/firebase'
+
+const googleProvider = new firebase.auth.GoogleAuthProvider()
+
+export const strict = false
 
 export const state = () => ({
-  authUser: null
+  user: null
 })
 
 export const mutations = {
-  SET_USER: function (state, user) {
-    state.authUser = user
+  setUser (state, payload) {
+    state.user = payload
   }
 }
 
 export const actions = {
-  // nuxtServerInit is called by Nuxt.js before server-rendering every page
-  nuxtServerInit({ commit }, { req }) {
-    if (req.session && req.session.authUser) {
-      commit('SET_USER', req.session.authUser)
-    }
-  },
-  async login({ commit }, { username, password }) {
-    try {
-      const { data } = await axios.post('/api/login', { username, password })
-      commit('SET_USER', data)
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        throw new Error('Bad credentials')
-      }
-      throw error
-    }
+  login () {
+    return new Promise((resolve, reject) => {
+      firebase.auth().signInWithRedirect(googleProvider)
+        .then(() => resolve())
+        .catch((err) => reject(err))
+    })
   },
 
-  async logout({ commit }) {
-    await axios.post('/api/logout')
-    commit('SET_USER', null)
+  logout ({ commit }) {
+    return new Promise((resolve, reject) => {
+      firebase.auth().signOut()
+        .then(() => {
+          commit('setUser', null)
+          resolve()
+        })
+        .catch((err) => reject(err))
+    })
+  },
+
+  setUser ({ commit }, payload) {
+    commit('setUser', payload)
   }
+}
 
+export const getters = {
+  isAuthenticated (state) {
+    return !!state.user
+  }
 }
