@@ -1,7 +1,6 @@
+const webpack = require('webpack')
+
 module.exports = {
-  /*
-  ** Headers of the page
-  */
   head: {
     title: 'sample',
     meta: [
@@ -13,19 +12,14 @@ module.exports = {
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
     ]
   },
-  /*
-  ** Customize the progress bar color
-  */
+  plugins: [ '~/plugins/firebase.js' ],
   loading: { color: '#3B8070' },
-  /*
-  ** Build configuration
-  */
   build: {
-    /*
-    ** Run ESLint on save
-    */
     extend (config, { isDev, isClient }) {
       if (isDev && isClient) {
+        /*
+        ** Run ESLint on save
+        */
         config.module.rules.push({
           enforce: 'pre',
           test: /\.(js|vue)$/,
@@ -33,26 +27,23 @@ module.exports = {
           exclude: /(node_modules)/
         })
       }
+      /**
+       * Add environment variables
+       * @link https://webpack.js.org/plugins/environment-plugin/
+       */
+      config.plugins.push(
+        new webpack.EnvironmentPlugin([
+          'FIREBASE_API_KEY',
+          'FIREBASE_AUTH_DOMAIN',
+          'FIREBASE_DATABASE_URL',
+          'FIREBASE_PROJECT_ID',
+          'FIREBASE_STORAGE_BUCKET',
+          'FIREBASE_MESSAGING_SENDER_ID'
+        ])
+      )
     }
   },
-  /*
-  ** Add server middleware
-  ** Nuxt.js uses `connect` module as server
-  ** So most of express middleware works with nuxt.js server middleware
-  */
-  serverMiddleware: [
-    // body-parser middleware
-    bodyParser.json(),
-    // session middleware
-    session({
-      secret: 'super-secret-key',
-      resave: false,
-      saveUninitialized: false,
-      cookie: { maxAge: 60000 }
-    }),
-    // Api middleware
-    // We add /api/login & /api/logout routes
-    '~/api'
-  ]
+  router: {
+    middleware: 'auth'
+  }
 }
-
