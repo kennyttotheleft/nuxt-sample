@@ -1,20 +1,18 @@
 name: Build Check
 on: pull_request
 jobs:
-  build-check:
-    runs-on: ubuntu-20.04
+  build:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x, 15.x]
-
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+        node: [ '12', '14', '16' ]
+    name: Node ${{ matrix.node }} sample
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup node
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ matrix.node }}
       - run: npm install
       - run: npm run build
       - run: npm run generate
